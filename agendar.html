@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendar Horário</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Dancing Script', cursive;
+      background: linear-gradient(135deg, #1a0b2e, #4b2b63, #3e243e);
+      color: #4b2a67;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    header { text-align: center; margin-bottom: 2rem; }
+    h1 {
+      font-size: 3rem; font-weight: 700;
+      background: linear-gradient(to right, #f472b6, #67e8f9);
+      -webkit-background-clip: text; background-clip: text;
+      color: transparent; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%{opacity:1}50%{opacity:0.7}100%{opacity:1} }
+    main {
+      width:100%; max-width:470px;
+      background:rgba(255,255,255,0.09);
+      border-radius:1.2rem;
+      padding:2rem 1.5rem;
+      box-shadow:0 0 18px #ff66cc,0 0 32px #66ccff44;
+      backdrop-filter:blur(8px);
+      display:flex; flex-direction:column;
+    }
+    label { font-size:1.25rem;font-weight:700;color:#a678c6; margin-top:0.8rem; }
+    input[type="text"], input[type="datetime-local"], select {
+      width:100%; height:2.5rem; border-radius:0.8rem;
+      border:1.5px solid #a678c6; background:#e9d6fb; color:#4b2a67;
+      margin-bottom:1rem; padding:0 1rem; font-size:1.15rem;
+    }
+    button {
+      padding:12px; border:none; border-radius:1.5rem;
+      background:linear-gradient(90deg,#f472b6 65%,#67e8f9);
+      color:#4b2a67; font-size:1.2rem; font-weight:700;
+      cursor:pointer; margin-top:0.18rem; margin-bottom:0.6rem;
+      box-shadow:0 2px 10px #ff66cc22; transition:filter .2s,transform .2s;
+    }
+    button:hover { filter:brightness(1.11); transform:scale(1.03); }
+    #service-manager { display:none; margin-top:1.2rem; }
+    .service-controls button { flex:1; }
+  </style>
+</head>
+<body>
+  <header><h1>Agendar Horário</h1></header>
+  <main>
+    <label>Usuário</label>
+    <input type="text" id="current-user" disabled>
+    <label>Cliente</label><select id="select-client"></select>
+    <label>Serviço</label><select id="select-service"></select>
+    <label>Data e Hora</label><input type="datetime-local" id="appointment-datetime">
+    <button id="save-appointment">Salvar Agendamento</button>
+    <button id="share-appointment">Compartilhar WhatsApp</button>
+    <button id="toggle-service-manager">Gerenciar Serviços</button>
+    <div id="service-manager">
+      <h3 style="text-align:center;color:#f472b6">Gerenciar Serviços</h3>
+      <label>Nome do Serviço</label><input id="new-service-name" placeholder="Serviço">
+      <label>Preço</label><input id="new-service-price" placeholder="Preço">
+      <div class="service-controls">
+        <button id="add-service-btn">Adicionar Serviço</button>
+        <button id="edit-service-btn">Editar Serviço</button>
+      </div>
+      <ul id="service-list"></ul>
+    </div>
+  </main>
+  <footer><p>© 2025 Viana Studio de Beleza.</p></footer>
+  <script>
+    let clients = JSON.parse(localStorage.getItem('clients')||'[]');
+    let services = JSON.parse(localStorage.getItem('services')||'[]');
+    let appointments = JSON.parse(localStorage.getItem('appointments')||'[]');
+    let users = JSON.parse(localStorage.getItem('users')||'[]');
+    const currentUserInput = document.getElementById('current-user');
+    const loggedUsername = localStorage.getItem('usuario') || '';
+    const loggedObj = users.find(u => u.username === loggedUsername);
+    currentUserInput.value = loggedObj ? loggedObj.name : loggedUsername;
+    function populateForm() {
+      const sc = document.getElementById('select-client');
+      sc.innerHTML = '<option value=""></option>' + clients.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
+      const ss = document.getElementById('select-service');
+      ss.innerHTML = '<option value=""></option>' + services.map((s,i)=>`<option value="${i}">${s.name} - R$${s.price.toFixed(2)}</option>`).join('');
+    }
+    function saveAll() {
+      localStorage.setItem('services', JSON.stringify(services));
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+    function refreshServices() {
+      const ul = document.getElementById('service-list');
+      ul.innerHTML = '';
+      services.forEach((s,i) => {
+        const li = document.createElement('li');
+        li.textContent = `${s.name} - R$${s.price.toFixed(2)}`;
+        const btn = document.createElement('button');
+        btn.textContent = '✕';
+        btn.onclick = () => { services.splice(i,1); saveAll(); refreshServices(); populateForm(); };
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+    }
+    document.getElementById('add-service-btn').onclick = () => {
+      const name = document.getElementById('new-service-name').value.trim();
+      const price = parseFloat(document.getElementById('new-service-price').value);
+      if (!name || isNaN(price)) return;
+      services.push({name, price});
+      saveAll(); refreshServices(); populateForm();
+    };
+    document.getElementById('edit-service-btn').onclick = () => {
+      const idx = parseInt(prompt('Índice do serviço (0 a '+(services.length-1)+')'));
+      if (isNaN(idx) || idx<0 || idx>=services.length) return;
+      const name = prompt('Novo nome', services[idx].name).trim();
+      const price = parseFloat(prompt('Novo preço', services[idx].price));
+      if (!name || isNaN(price)) return;
+      services[idx] = {name, price};
+      saveAll(); refreshServices(); populateForm();
+    };
+    document.getElementById('save-appointment').onclick = () => {
+      const c = parseInt(document.getElementById('select-client').value);
+      const s = parseInt(document.getElementById('select-service').value);
+      const dt = document.getElementById('appointment-datetime').value;
+      if (isNaN(c) || isNaN(s) || !dt) { alert('Selecione cliente, serviço e data'); return; }
+      if (loggedUsername && !users.find(u => u.username === loggedUsername)) {
+        users.push({username: loggedUsername, name: loggedObj ? loggedObj.name : loggedUsername});
+      }
+      appointments.push({client:c, service:s, datetime:dt, user: loggedUsername});
+      saveAll(); alert('Agendamento salvo');
+    };
+    document.getElementById('share-appointment').onclick = () => {
+      const c = parseInt(document.getElementById('select-client').value);
+      const s = parseInt(document.getElementById('select-service').value);
+      const dt = document.getElementById('appointment-datetime').value;
+      if (isNaN(c) || isNaN(s) || !dt) return;
+      const text = `📅 *Agendamento Confirmado - Viana Studio de Beleza!*
+👤 Cliente: ${clients[c].name}
+💇‍♀️ Serviço: ${services[s].name}
+📆 Data e Hora: ${new Date(dt).toLocaleString()}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    };
+    document.getElementById('toggle-service-manager').onclick = () => {
+      const mgr = document.getElementById('service-manager');
+      mgr.style.display = mgr.style.display === 'block' ? 'none' : 'block';
+    };
+    populateForm();
+    refreshServices();
+  </script>
+</body>
+</html>
