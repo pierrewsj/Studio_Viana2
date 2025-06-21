@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Viana - Studio de Beleza</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a0b2e, #4b2b63, #3e243e);
+      color: #f0e6f0;
+    }
+    body {
+      font-family: 'Dancing Script', cursive;
+      min-height: 100vh;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      overflow: hidden;
+    }
+    .login-container {
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 2.2rem;
+      box-shadow: 0 0 28px #ff66cc, 0 0 60px #67e8f9;
+      padding: 3vh 5vw 4vh 5vw;
+      max-width: 480px;
+      width: 98vw;
+      min-height: 68vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 1.4s;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(40px);} to { opacity: 1; transform: translateY(0); } }
+
+    h1 {
+      font-size: 4.7rem;
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+      text-align: center;
+      letter-spacing: 2.5px;
+      background: linear-gradient(90deg,#f472b6,#67e8f9,#ff66cc,#f472b6 80%);
+      background-size: 200% auto;
+      color: #fff;
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      text-shadow:
+        0 0 28px #fff4,
+        0 0 58px #ff66cc,
+        0 0 108px #67e8f9,
+        0 0 152px #ff66cc;
+      animation: neonTitle 2.2s infinite alternate, gradientMove 5s linear infinite;
+    }
+    @keyframes neonTitle {
+      0% { text-shadow: 0 0 28px #fff7, 0 0 60px #f472b6, 0 0 110px #67e8f9; }
+      100% { text-shadow: 0 0 48px #fff, 0 0 108px #ff66cc, 0 0 228px #67e8f9; }
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%;}
+      100% { background-position: 100% 50%;}
+    }
+    .subtitle {
+      font-size: 2.6rem;
+      color: #fff;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+      text-shadow: 0 0 22px #f472b6, 0 0 44px #67e8f9;
+      animation: neonSub 2.2s infinite alternate;
+    }
+    @keyframes neonSub {
+      0% { text-shadow: 0 0 22px #ff66cc77, 0 0 38px #67e8f977; }
+      100% { text-shadow: 0 0 44px #ff66cc, 0 0 78px #67e8f9; }
+    }
+    .slogan {
+      font-size: 2.1rem;
+      color: #f9a8d4;
+      margin-bottom: 2.9rem;
+      text-align: center;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-shadow: 0 0 32px #f472b699, 0 0 54px #67e8f9bb;
+      animation: neonSlogan 1.5s infinite alternate;
+    }
+    @keyframes neonSlogan {
+      0% { text-shadow: 0 0 22px #f472b699, 0 0 26px #67e8f988;}
+      100% { text-shadow: 0 0 42px #f472b6, 0 0 52px #67e8f9;}
+    }
+    label {
+      color: #f0e6f0;
+      font-size: 1.25rem;
+      margin-bottom: 0.38rem;
+      align-self: flex-start;
+      text-shadow: 0 0 8px #f472b6;
+    }
+    select, input[type="password"] {
+      width: 100%;
+      padding: 1.13rem 1.2rem;
+      border-radius: 1.15rem;
+      border: none;
+      margin-bottom: 1.65rem;
+      background: rgba(255,255,255,0.18);
+      color: #f0e6f0;
+      font-size: 1.28rem;
+      box-shadow: 0 2px 18px #ff66cc33;
+      transition: box-shadow 0.2s;
+      outline: none;
+      font-family: 'Dancing Script', cursive;
+      text-shadow: 0 0 8px #ff66cc44;
+    }
+    select:focus, input[type="password"]:focus {
+      outline: 2px solid #f472b6;
+      box-shadow: 0 0 20px #f472b666, 0 0 22px #67e8f944;
+    }
+    .btn-login {
+      width: 3.3rem;
+      height: 3.3rem;
+      min-width: 3.3rem;
+      min-height: 3.3rem;
+      max-width: 3.3rem;
+      max-height: 3.3rem;
+      padding: 0;
+      margin-top: 0.3rem;
+      margin-bottom: 1rem;
+      border: none;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f472b6, #67e8f9 90%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 28px #ff66cc99;
+      cursor: pointer;
+      animation: neonButton 1.5s infinite alternate;
+      transition: box-shadow 0.2s, transform 0.1s;
+    }
+    .btn-login:active { transform: scale(0.96);}
+    .btn-login i {
+      font-size: 1.5rem;
+      color: #fff;
+      text-shadow: 0 0 18px #fff, 0 0 24px #f472b6, 0 0 28px #67e8f9;
+    }
+    @keyframes neonButton {
+      0% { box-shadow: 0 3px 18px #ff66cc99; }
+      100% { box-shadow: 0 6px 34px #67e8f9; }
+    }
+    .error-message {
+      color: #ffb4d4;
+      font-size: 1.16rem;
+      margin-bottom: 1.08rem;
+      min-height: 1.6rem;
+      text-align: center;
+      width: 100%;
+      font-family: Arial, Helvetica, sans-serif;
+      text-shadow: 0 0 8px #ff66cc;
+    }
+    @media (max-width: 620px) {
+      .login-container { padding: 4vw 2vw 5vw 2vw; min-height: 97vh; }
+      h1 { font-size: 2.95rem; }
+      .subtitle { font-size: 1.8rem; }
+      .slogan { font-size: 1.5rem; }
+    }
+    @media (max-width: 380px) {
+      h1 { font-size: 1.75rem;}
+      .subtitle { font-size: 1.1rem;}
+      .slogan { font-size: 0.88rem;}
+    }
+  </style>
+</head>
+<body>
+  <form class="login-container" onsubmit="return login(event)">
+    <h1>Viana</h1>
+    <div class="subtitle">Studio de Beleza</div>
+    <div class="slogan">Realce sua beleza com elegância</div>
+    <label for="usuario">Usuário</label>
+    <select id="usuario" onchange="showSenha()" required>
+      <option value="">Selecione...</option>
+      <option value="patricia">Patrícia Viana</option>
+      <option value="raphaela">Raphaela Viana</option>
+    </select>
+    <div id="senha-container" style="display: none; width:100%;">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" placeholder="Digite a senha" autocomplete="off">
+    </div>
+    <div class="error-message" id="erro"></div>
+    <button class="btn-login" type="submit"><i class="fas fa-arrow-right"></i></button>
+  </form>
+  <script>
+    function showSenha() {
+      const user = document.getElementById('usuario').value;
+      const senhaContainer = document.getElementById('senha-container');
+      const senhaInput = document.getElementById('senha');
+      senhaInput.value = '';
+      document.getElementById('erro').textContent = '';
+      senhaContainer.style.display = user ? 'block' : 'none';
+    }
+    function login(event) {
+      event.preventDefault();
+      const user = document.getElementById('usuario').value;
+      const senha = document.getElementById('senha').value;
+      const erro = document.getElementById('erro');
+      if (!user) {
+        erro.textContent = 'Escolha o usuário.';
+        return false;
+      }
+      if (!senha) {
+        erro.textContent = 'Digite a senha.';
+        return false;
+      }
+      if ((user === 'patricia' && senha === '1234') || (user === 'raphaela' && senha === '4321')) {
+        erro.textContent = '';
+        window.location.href = "interface.html";
+              localStorage.setItem('usuario', user);
+        return true;
+      } else {
+        erro.textContent = 'Usuário ou senha incorretos.';
+        return false;
+      }
+    }
+  </script>
+</body>
+</html>
