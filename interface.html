@@ -1,0 +1,183 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viana - Studio de Beleza</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Dancing Script', cursive;
+      background: linear-gradient(135deg, #1a0b2e, #4b2b63, #3e243e);
+      color: #f0e6f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    h1 {
+      font-size: 4rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f472b6, #67e8f9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    header p {
+      font-size: 1.5rem;
+      color: #d4d4d8;
+      margin-top: 0.75rem;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 2rem;
+      width: 100%;
+      max-width: 1200px;
+    }
+
+    a {
+      display: block;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 2rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 0 10px #ff66cc, 0 0 20px #ff66cc, 0 0 30px #66ccff;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      box-shadow: 0 0 15px #ff66cc, 0 0 30px #ff66cc, 0 0 50px #66ccff;
+      transform: scale(1.05);
+    }
+
+    a h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #f9a8d4;
+      margin-bottom: 0.75rem;
+    }
+
+    a p {
+      font-size: 1.125rem;
+      color: #d4d4d8;
+    }
+
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 3rem; }
+      header p { font-size: 1.25rem; }
+      a { padding: 1.5rem; }
+      a h2 { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+<script>
+    if (!localStorage.getItem('usuario')) {
+        window.location.href = 'index.html';
+    }
+</script>
+
+  <header>
+    <h1>Viana Studio de Beleza</h1>
+    <p>Realce sua beleza com elegância</p>
+  </header>
+
+  <main>
+    <a href="clientes.html">
+      <h2>Adicionar Clientes</h2>
+      <p>Cadastre novos clientes com facilidade</p>
+    </a>
+    <a href="agendar.html">
+      <h2>Agendar Horário</h2>
+      <p>Reserve horários para seus clientes</p>
+    </a>
+    <a href="editar.html">
+      <h2>Editar Agendamentos</h2>
+      <p>Ajuste ou cancele agendamentos</p>
+    </a>
+    <a href="visualizar_agenda.html">
+      <h2>Visualizar Agenda</h2>
+      <p>Confira todos os horários marcados</p>
+    </a>
+  </main>
+
+  <footer>
+    <p>© 2025 Viana Studio de Beleza. Todos os direitos reservados.</p>
+  </footer>
+</body>
+</html>

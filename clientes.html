@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adicionar Clientes - Viana Studio</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Dancing Script', cursive;
+      background: linear-gradient(135deg, #1a0b2e, #4b2b63, #3e243e);
+      color: #4b2a67;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f472b6, #67e8f9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    main {
+      width: 100%;
+      max-width: 450px;
+      background: rgba(255, 255, 255, 0.09);
+      border-radius: 1.2rem;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 0 18px #ff66cc, 0 0 32px #66ccff44;
+      backdrop-filter: blur(8px);
+    }
+    label {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      margin-top: 0.8rem;
+      color: #a678c6;
+      letter-spacing: .5px;
+    }
+    input, select, textarea {
+      height: 2.5rem;
+      border-radius: 0.8rem;
+      border: 1.5px solid #a678c6 !important;
+      background: #e9d6fb !important;
+      color: #4b2a67 !important;
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      padding: 0 1rem;
+      width: 100%;
+      box-shadow: none !important;
+      outline: none !important;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border: 2px solid #a678c6 !important;
+    }
+    input::placeholder, textarea::placeholder {
+      color: #b49acb !important;
+      opacity: 1 !important;
+    }
+    button {
+      height: 2.7rem;
+      border: none;
+      border-radius: 1.5rem;
+      background: linear-gradient(90deg, #f472b6 65%, #67e8f9 100%);
+      color: #4b2a67;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 0.75rem;
+      margin-top: 0.25rem;
+      box-shadow: 0 2px 10px #ff66cc22;
+      transition: filter .2s, transform .2s;
+    }
+    button:hover { filter: brightness(1.11); transform: scale(1.03); }
+    #client-list {
+      display: none;
+      margin-top: 1.5rem;
+      max-width: 400px;
+    }
+    .client-item {
+      display: flex;
+      align-items: center;
+      background: #e9d6fb;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      box-shadow: 0 2px 7px #a678c625;
+      font-size: 1.1rem;
+      color: #4b2a67;
+    }
+    .client-item input[type="radio"] { margin-right: 10px; }
+    #client-actions {
+      display: none;
+      margin-top: 20px;
+      max-width: 400px;
+      text-align: center;
+    }
+    #client-actions button {
+      margin-bottom: 10px;
+      width: 47%;
+      margin-right: 2%;
+    }
+    #client-actions button:last-child {
+      margin-right: 0;
+    }
+    @media (max-width: 540px) {
+      main { padding: 1rem 0.25rem; }
+      h1 { font-size: 2.1rem; }
+      label { font-size: 1.05rem; }
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+<script>
+    if (!localStorage.getItem('usuario')) {
+        window.location.href = 'index.html';
+    }
+</script>
+
+  <header>
+    <h1>Adicionar Cliente</h1>
+  </header>
+  <main>
+    <label>Nome</label><input id="client-name" type="text" placeholder="Nome completo">
+    <label>Telefone</label><input id="client-phone" type="tel" inputmode="numeric" pattern="[0-9]*" placeholder="(XX) XXXXX-XXXX">
+    <label>Email</label><input id="client-email" type="email" placeholder="email@exemplo.com">
+    <button id="save-client">Salvar Cliente</button>
+    <button id="view-clients">Visualizar Clientes</button>
+    <div id="client-list"></div>
+    <div id="client-actions">
+      <button id="btn-edit-client">Editar</button>
+      <button id="btn-delete-client">Excluir</button>
+      <button id="btn-save-edit">Salvar Alterações</button>
+      <button id="btn-close-actions">Fechar</button>
+    </div>
+  </main>
+  <footer>
+    <p>© 2025 Viana Studio de Beleza. Todos os direitos reservados.</p>
+  </footer>
+  <script>
+    const normalize = s => s.trim().toLowerCase();
+    const normalizePhone = s => s.replace(/\D/g, '');
+    let clients = JSON.parse(localStorage.getItem('clients')||'[]');
+    let selectedIdx = null;
+    function saveAll(){ localStorage.setItem('clients', JSON.stringify(clients)); }
+    function refreshList(){
+      const list = document.getElementById('client-list'); list.innerHTML='';
+      clients.forEach((c,i)=>{
+        const div=document.createElement('div'); div.className='client-item';
+        const radio=document.createElement('input'); radio.type='radio'; radio.name='client-select'; radio.value=i; radio.onclick=()=>onSelect(i);
+        const span=document.createElement('span'); span.textContent=`${c.name} | ${c.phone} | ${c.email}`;
+        div.appendChild(radio); div.appendChild(span);
+        list.appendChild(div);
+      });
+    }
+    function onSelect(i){ selectedIdx=i; document.getElementById('client-actions').style.display='block'; }
+    document.getElementById('save-client').onclick=()=>{
+      const nameElem=document.getElementById('client-name');
+      const phoneElem=document.getElementById('client-phone');
+      const emailElem=document.getElementById('client-email');
+      const name=nameElem.value.trim(); const phone=phoneElem.value.trim(); const email=emailElem.value.trim();
+      if(!name||!phone){alert('Preencha nome e telefone');return;}
+      const key=normalize(name)+'|'+normalizePhone(phone);
+      const exists = clients.find(c => normalize(c.name)+'|'+normalizePhone(c.phone) === key);
+      if(exists){
+        alert(`O cliente '${exists.name}' com telefone '${exists.phone}' já está cadastrado.`);
+        return;
+      }
+      clients.push({name,phone,email}); saveAll(); alert('Cliente salvo');
+      nameElem.value=''; phoneElem.value=''; emailElem.value='';
+    };
+    document.getElementById('view-clients').onclick=()=>{
+      const list=document.getElementById('client-list'), act=document.getElementById('client-actions');
+      if(list.style.display==='block'){list.style.display='none';act.style.display='none';selectedIdx=null;} else{list.style.display='block';refreshList();}
+    };
+    document.getElementById('btn-edit-client').onclick=()=>{
+      if(selectedIdx===null){alert('Selecione um cliente');return;}const c=clients[selectedIdx];
+      document.getElementById('client-name').value=c.name;
+      document.getElementById('client-phone').value=c.phone;
+      document.getElementById('client-email').value=c.email;
+    };
+    document.getElementById('btn-save-edit').onclick=()=>{
+      if(selectedIdx===null){alert('Selecione para editar');return;}
+      const name=document.getElementById('client-name').value.trim();
+      const phone=document.getElementById('client-phone').value.trim();
+      const email=document.getElementById('client-email').value.trim();
+      if(!name||!phone){alert('Preencha nome e telefone');return;}
+      const key=normalize(name)+'|'+normalizePhone(phone);
+      if(clients.some((c,i)=>normalize(c.name)+'|'+normalizePhone(c.phone)===key && i!==selectedIdx)){
+        alert('Outro cliente com mesmo nome e telefone já existe'); return;
+      }
+      clients[selectedIdx]={name,phone,email}; saveAll();refreshList();alert('Alterações salvas');document.getElementById('client-actions').style.display='none';
+    };
+    document.getElementById('btn-delete-client').onclick=()=>{
+      if(selectedIdx===null){alert('Selecione para excluir');return;}clients.splice(selectedIdx,1);saveAll();refreshList();selectedIdx=null;document.getElementById('client-actions').style.display='none';alert('Cliente excluído');
+    };
+    document.getElementById('btn-close-actions').onclick=()=>{document.getElementById('client-actions').style.display='none';selectedIdx=null;document.getElementsByName('client-select').forEach(r=>r.checked=false);};
+  </script>
+</body>
+</html>

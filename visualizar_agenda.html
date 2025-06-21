@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Agenda</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Dancing Script', cursive;
+      background: linear-gradient(135deg, #1a0b2e, #4b2b63, #3e243e);
+      color: #f0e6f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f472b6, #67e8f9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    main {
+      width: 100%;
+      max-width: 650px;
+      background: rgba(255, 255, 255, 0.09);
+      border-radius: 1.2rem;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 0 18px #ff66cc, 0 0 32px #66ccff44;
+      backdrop-filter: blur(8px);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      background: rgba(26,11,46,0.16);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 10px #ffd1ea22;
+    }
+    th, td {
+      border: 1px solid #4b2a67;
+      padding: 10px 8px;
+      font-size: 1.12rem;
+      text-align: left;
+      background: rgba(60, 25, 70, 0.18);
+    }
+    th {
+      color: #f472b6;
+      background: rgba(220,50,120,0.09);
+      font-weight: 700;
+    }
+    .highlight {
+      color: #67e8f9;
+      font-weight: 600;
+    }
+    #summary {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #ffd1ea;
+    }
+    .btns {
+      display: flex;
+      gap: 0.7rem;
+      margin-top: 1.2rem;
+      justify-content: flex-end;
+    }
+    .btn-pdf, .btn-excel {
+      background: linear-gradient(90deg, #f472b6, #67e8f9);
+      color: #262338;
+      border: none;
+      font-size: 0.93rem;
+      font-weight: 700;
+      border-radius: 8px;
+      padding: 0.45rem 1rem;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+      box-shadow: 0 2px 7px #4442af22;
+    }
+    .btn-pdf:hover, .btn-excel:hover {
+      box-shadow: 0 2px 18px #ff4dd422, 0 2px 18px #4dd9ff22;
+      opacity: 0.9;
+    }
+    @media (max-width: 540px) {
+      main { padding: 1rem 0.25rem; }
+      h1 { font-size: 2.1rem; }
+      th, td { font-size: 1rem; }
+      .btns { flex-direction: column; gap: 0.5rem; }
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<script>
+    if (!localStorage.getItem('usuario')) {
+        window.location.href = 'index.html';
+    }
+</script>
+
+  <header>
+    <h1>Visualizar Agenda</h1>
+  </header>
+  <main>
+    <table id="agenda-table">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th class="highlight">Data e Hora</th>
+          <th>Serviço</th>
+          <th>Usuário</th>
+        </tr>
+      </thead>
+      <tbody id="view-body"></tbody>
+    </table>
+    <div id="summary"></div>
+    <div class="btns">
+      <button class="btn-pdf" onclick="gerarPDF()">Gerar PDF</button>
+      <button class="btn-excel" onclick="gerarExcel()">Gerar Planilha</button>
+    </div>
+  </main>
+  <footer>
+    <p>© 2025 Viana Studio de Beleza. Todos os direitos reservados.</p>
+  </footer>
+  <script>
+    const appointments = JSON.parse(localStorage.getItem('appointments')||'[]');
+    const clients = JSON.parse(localStorage.getItem('clients')||'[]');
+    const services = JSON.parse(localStorage.getItem('services')||'[]');
+    const users = JSON.parse(localStorage.getItem('users')||'[]');
+    function getUserName(userId) {
+      if (!userId) return '';
+      const user = users.find(u => u.id == userId || u.username == userId);
+      return user ? user.name || user.username : userId;
+    }
+    function refresh() {
+      const tbody = document.getElementById('view-body');
+      tbody.innerHTML = '';
+      let total = 0;
+      appointments.forEach(a=>{
+        const tr = document.createElement('tr');
+        const price = services[a.service]?.price || 0; total += price;
+        const userName = getUserName(a.user);
+        tr.innerHTML = `
+          <td>${clients[a.client]?.name||''}</td>
+          <td class="highlight">${new Date(a.datetime).toLocaleString()}</td>
+          <td>${services[a.service]?.name||''}</td>
+          <td>${userName}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+      document.getElementById('summary').textContent = `Total: ${appointments.length} | Serviços: R$ ${total.toFixed(2)}`;
+    }
+    function gerarPDF() {
+      const doc = new jspdf.jsPDF();
+      doc.setFont('helvetica', 'bold');
+      doc.text('Agenda de Serviços', 105, 15, {align: 'center'});
+      const head = [['Cliente', 'Data e Hora', 'Serviço', 'Usuário']];
+      const body = appointments.map(a => [
+        clients[a.client]?.name||'',
+        new Date(a.datetime).toLocaleString(),
+        services[a.service]?.name||'',
+        getUserName(a.user)
+      ]);
+      doc.autoTable({
+        head: head,
+        body: body,
+        startY: 25,
+        headStyles: { fillColor: [244, 114, 182], textColor: [26, 11, 46], fontStyle: 'bold' },
+        bodyStyles: { fillColor: [255,255,255], textColor: [40,32,48] },
+        styles: { lineColor: [75, 42, 103], lineWidth: 0.3 },
+        theme: 'grid',
+        margin: { left: 10, right: 10 }
+      });
+      doc.save('agenda.pdf');
+      alert('Arquivo gerado com sucesso!');
+    }
+    function gerarExcel() {
+      const ws_data = [
+        ['Cliente', 'Data e Hora', 'Serviço', 'Usuário'],
+        ...appointments.map(a => [
+          clients[a.client]?.name||'',
+          new Date(a.datetime).toLocaleString(),
+          services[a.service]?.name||'',
+          getUserName(a.user)
+        ])
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        let max_width = ws_data[0][C].length;
+        for (let R = 1; R < ws_data.length; ++R) {
+          if(ws_data[R][C] && ws_data[R][C].toString().length > max_width)
+            max_width = ws_data[R][C].toString().length;
+        }
+        if(!ws['!cols']) ws['!cols'] = [];
+        ws['!cols'][C] = {wch: max_width+2};
+      }
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Agenda');
+      XLSX.writeFile(wb, 'agenda.xlsx');
+      alert('Arquivo gerado com sucesso!');
+    }
+    refresh();
+  </script>
+</body>
+</html>
