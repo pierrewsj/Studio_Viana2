@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Viana - Studio de Beleza</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width:100%; height:100%; font-family:'Dancing Script', cursive; background:linear-gradient(135deg,#1a0b2e,#4b2b63,#3e243e); color:#f0e6f0; display:flex; align-items:center; justify-content:center; }
+    .login-container { background:rgba(255,255,255,0.12); backdrop-filter:blur(20px); border-radius:2rem; padding:2rem; max-width:480px; width:90%; }
+    h1 { text-align:center; font-size:3rem; background:linear-gradient(90deg,#f472b6,#67e8f9); -webkit-background-clip:text; color:transparent; margin-bottom:1rem; }
+    label { display:block; margin-top:1rem; font-size:1.2rem; color:#fff; }
+    select, input[type=password] { width:100%; padding:0.8rem; border-radius:1rem; border:none; margin-top:0.5rem; }
+    .btn-login { margin-top:1.5rem; width:100%; padding:1rem; background:linear-gradient(135deg,#f472b6,#67e8f9); border:none; border-radius:1rem; color:#fff; font-size:1.2rem; cursor:pointer; }
+    .error-message { color:#ff6b6b; margin-top:0.5rem; min-height:1.2rem; text-align:center; }
+  </style>
+</head>
+<body>
+  <form class="login-container" onsubmit="return login(event)">
+    <h1>Viana Studio</h1>
+    <label for="usuario">Usuário</label>
+    <select id="usuario" required onchange="showSenha()">
+      <option value="">Selecione...</option>
+      <option value="patricia">Patrícia Viana</option>
+      <option value="raphaela">Raphaela Viana</option>
+    </select>
+    <div id="senha-container" style="display:none;">
+      <label for="senha">Senha</label>
+      <input type="password" id="senha" placeholder="Digite a senha" autocomplete="off" required>
+    </div>
+    <div class="error-message" id="erro"></div>
+    <button class="btn-login" type="submit">Entrar</button>
+  </form>
+  <script>
+    function showSenha() {
+      const user = document.getElementById('usuario').value;
+      document.getElementById('erro').textContent = '';
+      document.getElementById('senha-container').style.display = user ? 'block' : 'none';
+    }
+    function login(event) {
+      event.preventDefault();
+      const userSelect = document.getElementById('usuario');
+      const user = userSelect.value;
+      const senha = document.getElementById('senha').value;
+      const erro = document.getElementById('erro');
+      if (!user) {
+        erro.textContent = 'Escolha o usuário.';
+        return false;
+      }
+      if (!senha) {
+        erro.textContent = 'Digite a senha.';
+        return false;
+      }
+      const valid = (user === 'patricia' && senha === '1234') || (user === 'raphaela' && senha === '4321');
+      if (!valid) {
+        erro.textContent = 'Usuário ou senha incorretos.';
+        return false;
+      }
+      // store logged user
+      localStorage.setItem('usuario', user);
+      localStorage.setItem('usuarioNome', userSelect.options[userSelect.selectedIndex].text);
+      window.location.href = 'interface.html';
+      return false;
+    }
+  </script>
+</body>
+</html>
