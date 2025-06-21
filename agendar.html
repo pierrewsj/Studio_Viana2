@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendar Horário</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Dancing Script', cursive;
+      background: linear-gradient(135deg, #1a0b2e, #4b2b63, #3e243e);
+      color: #4b2a67;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #f472b6, #67e8f9);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    main {
+      width: 100%;
+      max-width: 470px;
+      background: rgba(255, 255, 255, 0.09);
+      border-radius: 1.2rem;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 0 18px #ff66cc, 0 0 32px #66ccff44;
+      backdrop-filter: blur(8px);
+    }
+    label {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      margin-top: 0.8rem;
+      color: #a678c6;
+      letter-spacing: .5px;
+    }
+    input, select, textarea {
+      height: 2.5rem;
+      border-radius: 0.8rem;
+      border: 1.5px solid #a678c6 !important;
+      background: #e9d6fb !important;
+      color: #4b2a67 !important;
+      font-size: 1.15rem;
+      margin-bottom: 1rem;
+      padding: 0 1rem;
+      width: 100%;
+      box-shadow: none !important;
+      outline: none !important;
+      transition: border 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border: 2px solid #a678c6 !important;
+    }
+    input::placeholder, textarea::placeholder {
+      color: #b49acb !important;
+      opacity: 1 !important;
+    }
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 1.5rem;
+      background: linear-gradient(90deg, #f472b6 65%, #67e8f9 100%);
+      color: #4b2a67;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-bottom: 0.6rem;
+      margin-top: 0.18rem;
+      box-shadow: 0 2px 10px #ff66cc22;
+      transition: filter .2s, transform .2s;
+    }
+    button:hover { filter: brightness(1.11); transform: scale(1.03); }
+    #service-manager {
+      display: none;
+      margin-top: 1.2rem;
+      background: rgba(80,16,80,0.12);
+      padding: 1rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px #ffd1ea33;
+    }
+    .service-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .service-controls button {
+      flex: 1;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+    ul li {
+      display: flex;
+      justify-content: space-between;
+      background: #e9d6fb;
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      box-shadow: 0 2px 7px #a678c625;
+      font-size: 1.05rem;
+      color: #4b2a67;
+    }
+    @media (max-width: 540px) {
+      main { padding: 1rem 0.25rem; }
+      h1 { font-size: 2.1rem; }
+      label { font-size: 1.05rem; }
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      color: #9ca3af;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Agendar Horário</h1>
+  </header>
+  <main>
+    <label>Cliente</label><select id="select-client"></select>
+    <label>Serviço</label><select id="select-service"></select>
+    <label>Data e Hora</label><input type="datetime-local" id="appointment-datetime">
+    <button id="save-appointment">Salvar Agendamento</button>
+    <button id="share-appointment">Compartilhar WhatsApp</button>
+    <button id="toggle-service-manager">Gerenciar Serviços</button>
+    <div id="service-manager">
+      <h3 style="font-size:1.5rem;color:#f472b6;text-align:center;margin-bottom:.8rem;">Gerenciar Serviços</h3>
+      <label>Nome do Serviço</label><input id="new-service-name" placeholder="Serviço">
+      <label>Preço</label><input id="new-service-price" placeholder="Preço">
+      <div class="service-controls">
+        <button id="add-service-btn">Adicionar Serviço</button>
+        <button id="edit-service-btn">Editar Serviço</button>
+      </div>
+      <ul id="service-list"></ul>
+    </div>
+  </main>
+  <footer>
+    <p>© 2025 Viana Studio de Beleza. Todos os direitos reservados.</p>
+  </footer>
+  <script>
+    let clients = JSON.parse(localStorage.getItem('clients')||'[]');
+    let services = JSON.parse(localStorage.getItem('services')||'[]');
+    let appointments = JSON.parse(localStorage.getItem('appointments')||'[]');
+    function saveAll() {
+      localStorage.setItem('services', JSON.stringify(services));
+      localStorage.setItem('appointments', JSON.stringify(appointments));
+    }
+    function refresh() {
+      const sc = document.getElementById('select-client');
+      sc.innerHTML = '<option value=""></option>';
+      clients.forEach((c,i) => sc.add(new Option(c.name, i)));
+      const ss = document.getElementById('select-service');
+      ss.innerHTML = '<option value=""></option>';
+      services.forEach((s,i) => ss.add(new Option(s.name + ' R$' + s.price, i)));
+      const ul = document.getElementById('service-list'); ul.innerHTML = '';
+      services.forEach((s,i) => {
+        const li = document.createElement('li');
+        li.textContent = `${s.name} - R$${s.price.toFixed(2)}`;
+        const btn = document.createElement('button');
+        btn.textContent = '✕';
+        btn.onclick = () => { services.splice(i,1); saveAll(); refresh(); };
+        li.appendChild(btn);
+        ul.appendChild(li);
+      });
+    }
+    document.getElementById('add-service-btn').onclick = () => {
+      const name = document.getElementById('new-service-name').value.trim();
+      const price = parseFloat(document.getElementById('new-service-price').value);
+      if (!name || isNaN(price)) return;
+      services.push({ name, price });
+      saveAll(); refresh();
+    };
+    document.getElementById('edit-service-btn').onclick = () => {
+      const idx = parseInt(prompt('Índice do serviço a editar (0 a ' + (services.length-1) + ')'));
+      if (isNaN(idx) || idx<0 || idx>=services.length) return;
+      const name = prompt('Novo nome', services[idx].name).trim();
+      const price = parseFloat(prompt('Novo preço', services[idx].price));
+      if (!name || isNaN(price)) return;
+      services[idx] = { name, price };
+      saveAll(); refresh();
+    };
+    document.getElementById('save-appointment').onclick = () => {
+      const c = parseInt(document.getElementById('select-client').value);
+      const s = parseInt(document.getElementById('select-service').value);
+      const dt = document.getElementById('appointment-datetime').value;
+      if (isNaN(c) || isNaN(s) || !dt) return;
+      appointments.push({ client: c, service: s, datetime: dt });
+      saveAll(); alert('Agendamento salvo');
+    };
+    document.getElementById('share-appointment').onclick = () => {
+      const c = parseInt(document.getElementById('select-client').value);
+      const s = parseInt(document.getElementById('select-service').value);
+      const dt = document.getElementById('appointment-datetime').value;
+      if (isNaN(c) || isNaN(s) || !dt) return;
+      const text = `📅 *Agendamento Confirmado - Viana Studio de Beleza!*
+👤 Cliente: ${clients[c].name}
+💇‍♀️ Serviço: ${services[s].name}
+📆 Data e Hora: ${new Date(dt).toLocaleString()}
+📍 Local: Viana Studio de Beleza ✨`;;
+      window.open(`https://wa.me/?text=${text}`, '_blank');
+    };
+    document.getElementById('toggle-service-manager').onclick = () => {
+      const mgr = document.getElementById('service-manager');
+      mgr.style.display = mgr.style.display === 'block' ? 'none' : 'block';
+    };
+    refresh();
+  </script>
+</body>
+</html>

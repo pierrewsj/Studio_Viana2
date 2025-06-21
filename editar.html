@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Agendamentos</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&display=swap');
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Dancing Script',cursive;background:linear-gradient(135deg,#1a0b2e,#4b2b63,#3e243e);color:#f0e6f0;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:2rem}
+    header{margin-bottom:2rem;text-align:center}
+    h1{font-size:3rem;font-weight:700;background:linear-gradient(to right,#f472b6,#67e8f9);-webkit-background-clip:text;background-clip:text;color:transparent;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+    main{width:100%;max-width:600px;background:rgba(255,255,255,0.09);border-radius:1.2rem;padding:2rem;box-shadow:0 0 18px #ff66cc,0 0 32px #66ccff44;backdrop-filter:blur(8px);display:flex;flex-direction:column}
+    table{width:100%;border-collapse:collapse;margin-bottom:1rem;background:rgba(26,11,46,0.16);border-radius:12px;overflow:hidden}
+    th,td{border:1px solid #4b2a67;padding:10px;font-size:1.1rem;background:rgba(60,25,70,0.18)}
+    th{background:rgba(220,50,120,0.09);color:#f472b6;font-weight:700}
+    input[type=radio]{transform:scale(1.2)}
+    #actions{display:flex;gap:1rem;margin-top:1rem}
+    button{padding:0.8rem 1.2rem;border:none;border-radius:1.5rem;background:linear-gradient(90deg,#f472b6 65%,#67e8f9 100%);color:#4b2a67;font-weight:700;cursor:pointer;flex:1;transition:filter .2s}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    #reschedule-container{display:none;flex-direction:column;margin-top:1rem}
+    #reschedule-container label{margin-bottom:.5rem;font-weight:700;color:#a678c6}
+    #reschedule-container input{padding:.8rem;border-radius:.8rem;border:1.5px solid #a678c6;background:#e9d6fb;margin-bottom:.8rem;font-size:1rem}
+  </style>
+</head>
+<body>
+  <header><h1>Editar Agendamentos</h1></header>
+  <main>
+    <table>
+      <thead>
+        <tr><th></th><th>Cliente</th><th>Data e Hora</th><th>Serviço</th></tr>
+      </thead>
+      <tbody id="edit-body"></tbody>
+    </table>
+    <div id="actions">
+      <button id="reschedule-btn" disabled>Remarcar</button>
+      <button id="delete-btn" disabled>Excluir</button>
+    </div>
+    <div id="reschedule-container">
+      <label for="reschedule-datetime">Nova Data e Hora</label>
+      <input type="datetime-local" id="reschedule-datetime">
+      <button id="confirm-reschedule">Salvar</button>
+    </div>
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', ()=>{
+      const appointments = JSON.parse(localStorage.getItem('appointments')||'[]');
+      const clients = JSON.parse(localStorage.getItem('clients')||'[]');
+      const services = JSON.parse(localStorage.getItem('services')||'[]');
+      const tbody = document.getElementById('edit-body');
+      const btnReschedule = document.getElementById('reschedule-btn');
+      const btnDelete = document.getElementById('delete-btn');
+      const rescheduleContainer = document.getElementById('reschedule-container');
+      const dtInput = document.getElementById('reschedule-datetime');
+      const btnConfirm = document.getElementById('confirm-reschedule');
+
+      function saveAll(){ localStorage.setItem('appointments',JSON.stringify(appointments)); }
+      function refresh(){
+        tbody.innerHTML = '';
+        appointments.forEach((a,i)=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><input type="radio" name="select" value="${i}"></td>
+            <td>${clients[a.client]?.name||''}</td>
+            <td>${new Date(a.datetime).toLocaleString()}</td>
+            <td>${services[a.service]?.name||''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        updateButtons();
+      }
+      function updateButtons(){
+        const sel = document.querySelector('input[name=select]:checked');
+        btnReschedule.disabled = !sel;
+        btnDelete.disabled = !sel;
+      }
+      tbody.addEventListener('change', updateButtons);
+      btnDelete.addEventListener('click', ()=>{
+        const sel = document.querySelector('input[name=select]:checked'); if(!sel) return;
+        appointments.splice(parseInt(sel.value),1);
+        saveAll(); refresh();
+      });
+      btnReschedule.addEventListener('click', ()=>{
+        const sel = document.querySelector('input[name=select]:checked'); if(!sel) return;
+        const idx = parseInt(sel.value);
+        dtInput.value = appointments[idx].datetime;
+        rescheduleContainer.style.display = 'flex';
+      });
+      btnConfirm.addEventListener('click', ()=>{
+        const sel = document.querySelector('input[name=select]:checked'); if(!sel) return;
+        const idx = parseInt(sel.value);
+        const newDt = dtInput.value;
+        if(newDt){ appointments[idx].datetime = newDt; saveAll(); refresh(); rescheduleContainer.style.display='none'; }
+      });
+
+      refresh();
+    });
+  </script>
+</body>
+</html>
